@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ManoScan - Main</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+<div id="sidebar" class="sidebar">
+    <div style="padding: 20px; background: var(--soft-blue); color: var(--primary-blue); font-weight: bold;">
+        Mano App
+    </div>
+    <a href="#" onclick="alert('ManoScan v1.0')"><i class="fa fa-info-circle"></i> Info Aplikasi</a>
+    <a href="#" class="btn-default" style="margin: 10px 20px; width: calc(100% - 40px);"><i class="fa fa-cog"></i> Pengaturan</a>
+    <a href="index.html" style="color: #e74c3c;"><i class="fa fa-sign-out-alt"></i> Keluar</a>
+</div>
+
+<header>
+    <button class="menu-btn" onclick="toggleMenu()">
+        <i class="fa fa-bars"></i>
+    </button>
+    <h2 id="page-title">Daftar Baca</h2>
+</header>
+
+<div class="content" id="main-content">
+    <div class="card">
+        <p style="color: #666;">Memuat data manometer...</p>
+    </div>
+</div>
+
+<!-- Page Daftar Baca Mulai -->
+<template id="page-daftar-baca">
+    <div class="card">
+        <h4>Daftar Bacaan Manometer</h4>
+        <p>Menampilkan data dari database...</p>
+    </div>
+</template>
+<!-- Page Daftar Baca Selesai -->
+
+<!-- Page Sudah Baca Mulai -->
+<template id="page-sudah-baca">
+    <div class="card">
+        <h4>Data Terverifikasi</h4>
+        <p>Semua data ini sudah dibaca.</p>
+    </div>
+</template>
+<!-- Page Sudah Baca Selesai -->
+
+<!-- Page Belum Upload Mulai -->
+<template id="page-belum-upload">
+    <div class="card">
+        <h4>Sinkronisasi Godoh Embon</h4>
+        <p>Ada 0 data tersimpan lokal.</p>
+    </div>
+</template>
+<!-- Page Belum Upload Selesai -->
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="changePage('Daftar Baca', this)">
+            <i class="fa fa-list"></i>
+            <span>Daftar Baca</span>
+        </a>
+        <a href="#" class="nav-item" onclick="changePage('Sudah Baca', this)">
+            <i class="fa fa-check-circle"></i>
+            <span>Sudah Baca</span>
+        </a>
+        <a href="#" class="nav-item" onclick="changePage('Belum Upload', this)">
+            <i class="fa fa-cloud-upload-alt"></i>
+            <span>Belum Upload</span>
+        </a>
+    </nav>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+<script>
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function changePage(title, element) {
+            // 1. Judul & Active Class
+            document.getElementById('page-title').innerText = title;
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+
+            // 2. Ambil konten dari template berdasarkan judul
+            let templateId = '';
+            if(title === 'Daftar Baca') templateId = 'page-daftar-baca';
+            else if(title === 'Sudah Baca') templateId = 'page-sudah-baca';
+            else if(title === 'Belum Upload') templateId = 'page-belum-upload';
+
+            const content = document.getElementById('main-content');
+            const template = document.getElementById(templateId);
+    
+            // 3. Masukkan isi template ke dalam main-content
+            content.innerHTML = ''; // Bersihkan konten lama
+            content.appendChild(template.content.cloneNode(true));
+        }
+        
+    </script>
+</html>

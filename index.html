@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login - Baca Manometer</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/login_style.css">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
@@ -12,8 +12,8 @@
 
     <div class="login-container">
         <div class="logo-area">
-            <h1>ManoScan</h1>
-            <p>Sistem Pencatatan Tekanan Digital</p>
+            <h1>Manometer Reading</h1>
+            <p>Sistem Pencatatan Tekanan Air Digital</p>
         </div>
 
         <form id="loginForm">
@@ -26,30 +26,124 @@
                 <label>Password</label>
                 <input type="password" id="password" placeholder="Masukkan password" required>
             </div>
-
             <button type="submit" class="btn-login">MASUK</button>
         </form>
+        <button type="submit" class="btn-setting" onclick="openModal('Setting IP Server')">SET API</button>
 
-        <p class="footer-text">&copy; 2026 Internal Utility App</p>
+        <p class="footer-text">&copy; 2026 Crocodev</p>
     </div>
 
-    <script>
+    <div id="modalApp" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h3 id="modalTitle">Konfirmasi</h3>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+            <input type="text" id="ip_server" class="input-minimalis" placeholder="Contoh: 192.168.1.10">
+            <span class="hidden" id="ip_empty"><small class="text-danger">IP/Host Name harus di isi !</small></span>
+            </div>
+            <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Batal</button>
+            <button class="btn-primary" id="btnConfirm"  onclick="saveURL()">Simpan</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+ <script>
+    const dbName = "ManometerDB";
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+            const request = indexedDB.open(dbName, 1);
+
+            // Membuat struktur database jika pertama kali dijalankan
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains("bacaan")) {
+                    // 'id' sebagai kunci unik yang otomatis bertambah
+                    db.createObjectStore("bacaan", { keyPath: "id", autoIncrement: true });
+                }
+            };
+
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject("Gagal membuka IndexedDB");
+            });
+        }
+
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             // Simulasi login sederhana
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
+            const ip_server = localStorage.getItem('ip_server');
 
-            if(user === "admin" && pass === "1234") {
-                // Simpan status login di localStorage
-                localStorage.setItem('isLoggedIn', 'true');
-                // Alihkan ke halaman utama scan (nanti kita buat file main.html)
-                window.location.href = 'main.html';
-            } else {
-                alert('Username atau Password salah!');
+            if(!ip_server){
+                alert("IP Server Belum di setting");
+            }else{
+                $.ajax({
+                url: ip_server+"/Services/test",
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    user : user,
+                    pass : pass
+                },
+                success: function(data) {
+                    if(data.status === true){
+                    initDB().then(() => {
+                        console.log("Database berhasil disiapkan");
+        
+                        // Simpan data ke localStorage
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('username', data.result["username"]);
+                        localStorage.setItem('nik', data.result["nik"]);
+        
+                        // Baru pindah halaman setelah DB siap
+                        window.location.href = 'main.html';
+                    }).catch((err) => {
+                        alert("Gagal menyiapkan database lokal: " + err);
+                    });
+                    }else{
+                        alert(data.message);
+                    }
+                }
+
+                });
             }
+
         });
+
+        function saveURL() {
+            document.getElementById('ip_empty').classList.add('hidden');
+            const ip_server = document.getElementById('ip_server').value;
+                if(ip_server==""){
+                    document.getElementById('ip_empty').classList.remove('hidden');
+                }else{
+                    document.getElementById('ip_empty').classList.add('hidden');
+                    localStorage.setItem('ip_server', ip_server);
+                    closeModal();
+                }
+        }
+
+        // FUNGSI JAVASCRIPT UNTUK MODAL
+        function openModal(title) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalApp').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalApp').classList.remove('show');
+        }
+
+    // Klik di luar modal untuk menutup
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalApp');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
     </script>
-</body>
 </html>

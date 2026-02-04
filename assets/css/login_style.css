@@ -1,14 +1,10 @@
 :root {
     --primary-blue: #00a8ff;
     --soft-blue: #e3f2fd;
-    --grey-bg: #f4f7f6;
-    --text-main: #333;
+    --dark-grey: #333;
+    --light-grey: #f8f9fa;
 }
 
-body {
-    background-color: var(--grey-bg);
-    min-height: 100vh;
-}
 * {
     box-sizing: border-box;
     margin: 0;
@@ -16,8 +12,15 @@ body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
+body {
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-.container {
+.login-container {
     width: 90%;
     max-width: 400px;
     padding: 2rem;
@@ -69,21 +72,10 @@ input:focus {
     box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
 }
 
-.btn-primary {
-    flex: 1;
-    padding: 12px;
-    background: var(--primary-blue);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-default {
+.btn-login {
     width: 100%;
     padding: 14px;
-    background-color: #6c7d79;
+    background-color: var(--primary-blue);
     color: white;
     border: none;
     border-radius: 10px;
@@ -94,12 +86,26 @@ input:focus {
     box-shadow: 0 4px 15px rgba(0, 168, 255, 0.3);
 }
 
-.btn-default:active {
-    background-color: #5a6268; /* Sedikit lebih gelap saat ditekan */
+.btn-login:active {
     transform: scale(0.98);
 }
 
-.btn-primary:active {
+.btn-setting {
+    width: 100%;
+    padding: 14px;
+    background-color: #6c757d;;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 168, 255, 0.3);
+}
+
+.btn-setting:active {
+    background-color: #5a6268; /* Sedikit lebih gelap saat ditekan */
     transform: scale(0.98);
 }
 
@@ -107,126 +113,6 @@ input:focus {
     margin-top: 2rem;
     font-size: 0.8rem;
     color: #bbb;
-}
-
-
-/* Header & Hamburger */
-header {
-background: white;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.menu-btn {
-    font-size: 20px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--primary-blue);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    margin-right: 10px;
-    transition: background 0.2s;
-}
-
-/* Efek sentuhan pada tombol hamburger */
-.menu-btn:active {
-    background-color: var(--soft-blue);
-}
-
-header h2 {
-    font-size: 1.15rem;
-    color: var(--dark-grey);
-    font-weight: 600;
-}
-
-/* Sidebar / Drawer Menu */
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: -250px; /* Sembunyi */
-    width: 250px;
-    height: 100%;
-    background: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    transition: 0.3s;
-    z-index: 200;
-    padding-top: 60px;
-}
-
-.sidebar.active {
-    left: 0;
-}
-
-.sidebar a {
-    display: block;
-    padding: 15px 25px;
-    text-decoration: none;
-    color: var(--text-main);
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.overlay {
-    position: fixed;
-    display: none;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 150;
-}
-
-/* Bottom Navigation */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: white;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    z-index: 100;
-}
-
-.nav-item {
-    text-align: center;
-    flex: 1;
-    text-decoration: none;
-    color: #888;
-    font-size: 0.75rem;
-}
-
-.nav-item.active {
-    color: var(--primary-blue);
-}
-
-.nav-item i {
-    display: block;
-    font-size: 1.2rem;
-    margin-bottom: 3px;
-}
-
-/* Content Area */
-.content {
-    padding: 20px;
-}
-
-.card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
 /* --- MODAL SYSTEM --- */
@@ -296,6 +182,17 @@ header h2 {
     padding: 12px;
     background: #eee;
     color: #333;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-primary {
+    flex: 1;
+    padding: 12px;
+    background: var(--primary-blue);
+    color: white;
     border: none;
     border-radius: 10px;
     font-weight: bold;
