@@ -3,26 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <title>Manometer Scan</title>
+    <title>Login - Baca Manometer</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
-    <div id="app">
-        <h2>Reader Manometer</h2>
-        
-        <div id="reader"></div>
-        
-        <div class="controls">
-            <input type="number" id="pressureValue" placeholder="Input Nilai Tekanan">
-            <button onclick="capturePhoto()">Ambil Foto Bukti</button>
-            <button class="btn-save" onclick="saveData()">Simpan Data</button>
+
+    <div class="login-container">
+        <div class="logo-area">
+            <h1>ManoScan</h1>
+            <p>Sistem Pencatatan Tekanan Digital</p>
         </div>
 
-        <div id="status">Status: <span id="onlineStatus">Online</span></div>
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Masukkan username" required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Masukkan password" required>
+            </div>
+
+            <button type="submit" class="btn-login">MASUK</button>
+        </form>
+
+        <p class="footer-text">&copy; 2026 Internal Utility App</p>
     </div>
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="app.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulasi login sederhana
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if(user === "admin" && pass === "1234") {
+                // Simpan status login di localStorage
+                localStorage.setItem('isLoggedIn', 'true');
+                // Alihkan ke halaman utama scan (nanti kita buat file main.html)
+                window.location.href = 'main.html';
+            } else {
+                alert('Username atau Password salah!');
+            }
+        });
+    </script>
 </body>
 </html>
