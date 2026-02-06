@@ -145,5 +145,42 @@
                 closeModal();
             }
         }
+
+        async function downloadDataManometer(nik) {
+            const ip_server = localStorage.getItem('ip_server');
+    
+            try {
+                // Ambil data dari CI3
+                const response = await fetch(`${ip_server}/api/get_manometer?nik=${nik}`);
+        
+                // Cek jika koneksi oke
+                if (!response.ok) throw new Error("Gagal mengambil data dari server");
+
+                const dataAlat = await response.json();
+
+                // Simpan ke IndexedDB
+                await simpanKeIndexedDB(dataAlat);
+        
+                console.log("Sinkronisasi Berhasil!");
+            } catch (error) {
+                console.error("Proses Sinkronisasi Gagal:", error);
+                alert("Gagal sinkron data: " + error.message);
+            }
+        }
+
+async function simpanKeIndexedDB(data) {
+    // Pastikan DB sudah terbuka (initDB yang kita buat sebelumnya)
+    const tx = db.transaction('manometer', 'readwrite');
+    const store = tx.objectStore('manometer');
+
+    data.forEach(item => {
+        store.put(item); // Insert atau Update berdasarkan keyPath (id_alat)
+    });
+
+    return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject("Gagal menulis ke database lokal");
+    });
+}
     </script>
 </html>
