@@ -1,12 +1,21 @@
 {
-  "name": "Manometer Reader",
-  "short_name": "ManoScan",
+  "name": "PDAM Gianyar Manometer",
+  "short_name": "PDAM-G",
+  "description": "Aplikasi Pemantauan Tekanan Air PDAM Gianyar",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#1a1a1a",
-  "theme_color": "#007bff",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
   "icons": [
-    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "https://via.placeholder.com/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
