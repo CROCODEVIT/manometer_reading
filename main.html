@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDAM Gianyar - Monitor Manometer</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
+    <style>
+        body { background-color: #f0f4f8; font-family: sans-serif; padding-bottom: 80px; }
+        .app-card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .nav-active { color: #1d4ed8; border-top: 3px solid #1d4ed8; }
+        .page-content { display: none; }
+        .page-active { display: block; }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-blue-700">PDAM GIANYAR</h1>
+        <p class="text-sm text-gray-500">Monitoring Tekanan Air</p>
+    </div>
+
+    <div id="page-input" class="page-content page-active">
+        <div class="bg-white p-6 app-card mb-6">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">Input Tekanan Manometer</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600">Lokasi Manometer</label>
+                    <input type="text" list="list-manometer" id="lokasi" class="w-full p-3 border rounded-lg focus:outline-blue-500 shadow-sm" placeholder="Contoh: Zona Ubud">
+                    <datalist id="list-manometer"></datalist>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600">Tekanan (Bar)</label>
+                    <input type="number" step="0.1" id="tekanan" class="w-full p-3 border rounded-lg focus:outline-blue-500 shadow-sm" placeholder="0.0">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600">Foto Manometer</label>
+                    <input type="file" id="foto_file" accept="image/*" capture="camera" class="hidden">
+                    <div id="btnAmbilFoto" class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer bg-gray-50 active:bg-gray-200 transition">
+                        <span id="txtFoto" class="text-gray-500">📸 Klik untuk Ambil Foto</span>
+                        <img id="preview" class="hidden mt-2 mx-auto rounded-lg max-h-48 shadow-md">
+                    </div>
+                </div>
+                <button id="btnSimpan" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition flex justify-center items-center shadow-lg">
+                    <span>KIRIM DATA</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-history" class="page-content">
+        <div class="bg-white p-6 app-card">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">Riwayat Terakhir</h2>
+            <div id="listData" class="space-y-4">
+                <p class="text-center text-gray-400 py-10 italic">Data di server akan muncul di sini.</p>
+            </div>
+        </div>
+    </div>
+
+<div id="page-daftarbaca" class="page-content px-4">
+    <div class="sticky top-0 bg-gray-50/80 backdrop-blur-md pt-6 pb-4 z-10">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-extrabold text-blue-900 tracking-tight">MANO<span class="text-green-600">APP</span></h1>
+            <button id="btnSynch" class="text-gray-400 hover:text-green-600 transition-colors">
+                <i class="fas fa-sync-alt text-sm"></i>
+            </button>
+        </div>
+
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                <i class="fas fa-search text-xs"></i>
+            </span>
+            <input 
+                type="text" 
+                id="searchMano" 
+                placeholder="Cari nama manometer..." 
+                class="w-full bg-white border-none rounded-2xl py-3 pl-10 pr-4 shadow-sm focus:ring-2 focus:ring-green-500 text-sm transition-all outline-none"
+            >
+        </div>
+    </div>
+
+    <div id="listBaca" class="mt-2 space-y-3 pb-24">
+        </div>
+</div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <button class="nav-btn w-full py-3 flex flex-col items-center nav-active" data-target="page-input" id="btn-input">
+            <span class="text-xl">📝</span>
+            <span class="text-[10px] font-bold uppercase">Input</span>
+        </button>
+        <button class="nav-btn w-full py-3 flex flex-col items-center text-gray-400" data-target="page-history">
+            <span class="text-xl">📊</span>
+            <span class="text-[10px] font-bold uppercase">Riwayat</span>
+        </button>
+        <button class="nav-btn w-full py-3 flex flex-col items-center text-gray-400" data-target="page-daftarbaca">
+            <span class="text-xl">ℹ️</span>
+            <span class="text-[10px] font-bold uppercase">Daftar Baca</span>
+        </button>
+    </nav>
+
+    <script>
+        $(document).ready(function() {
+        let allDataMano = []; // Tempat menyimpan semua data dari IndexedDB
+        loadDataFromDB();
+
+       // 2. Fungsi khusus untuk mengisi datalist (Pindahkan kodenya ke sini)
+    function updateDatalist(dataArray) {
+        var $datalist = $('#list-manometer');
+         
+        // Kosongkan dulu list lama agar tidak dobel/menumpuk saat di-update
+        $datalist.empty(); 
+        
+        // Looping array untuk memasukkan data ke dalam datalist
+        dataArray.forEach(function(item) {
+        $datalist.append($('<option>').val(item.manometer));
+    });
+    }
+
+
+function initDB() {
+    return new Promise((resolve, reject) => {
+        // Versi dinaikkan ke 2 jika sebelumnya sudah ada versi 1 untuk memicu onupgradeneeded
+        const request = indexedDB.open("manoApp", 1);
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            
+            // Nama Object Store disesuaikan dengan konteks Manometer
+            if (!db.objectStoreNames.contains("pembacaan_manometer")) {
+                
+                // Primary key menggunakan 'id_periode' sesuai gambar
+                const store = db.createObjectStore("pembacaan_manometer", { 
+                    keyPath: "id_pembacaan", 
+                    autoIncrement: true 
+                });
+
+                // Index untuk mempermudah pencarian berdasarkan kolom penting di gambar
+                store.createIndex("id_manometer", "id_manometer", { unique: false });
+                store.createIndex("tgl_baca", "tgl_baca", { unique: false });
+                store.createIndex("status_baca", "status_baca", { unique: false });
+                store.createIndex("status_masa", "status_masa", { unique: false });
+                // Tetap menyertakan index status_sync untuk keperluan sinkronisasi data offline ke server
+                // 0 = belum upload, 1 = sudah upload
+                store.createIndex("status_sync", "status_sync", { unique: false });
+            }
+
+             // Nama Object Store disesuaikan dengan konteks Manometer
+            if (!db.objectStoreNames.contains("daftar_baca")) {
+                
+                // Primary key menggunakan 'id_periode' sesuai gambar
+                const store = db.createObjectStore("daftar_baca", { 
+                    keyPath: "id", 
+                    autoIncrement: true 
+                });
+
+                // Index untuk mempermudah pencarian berdasarkan kolom penting di gambar
+                store.createIndex("id_manometer", "id_manometer", { unique: true });
+                store.createIndex("id_zona", "id_zona", { unique: false });
+                store.createIndex("id_dma", "id_dma", { unique: false });
+            }
+        };
+
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject("Gagal membuka IndexedDB: " + event.target.error);
+    });
+}
+            var login_status = localStorage.getItem('isLoggedIn');
+            !login_status?window.location.replace("./index.html?login=error"):"";
+            let fileTerkompresi = null;
+
+            $('#btnSynch').on('click', function() {
+                const btn = $(this);
+                const icon = btn.find('i');
+                const ip_server = localStorage.getItem('ip_server');
+
+                if (!ip_server) {
+                    alert("IP Server belum disetting!");
+                    return;
+                }
+
+                $.ajax({
+                    url: ip_server + "/Services/sync_data", 
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        nik: localStorage.getItem("nik")
+                    },
+                    beforeSend: function() {
+                         // 1. Mulai putar icon
+                        icon.addClass('fa-spin');
+                        // 2. Disable tombol supaya tidak diklik berkali-kali
+                        btn.prop('disabled', true).addClass('opacity-50');
+                    },
+                    success: function(response) {
+                        // Tambahkan logika jika berhasil (misal: alert sukses)
+                        alert("Sinkronisasi berhasil");
+                     
+                        // Simpan ke database lokal (IndexedDB)
+                        saveToIndexedDB(response.data);
+                    },
+                    error: function() {
+                        alert("Gagal sinkronisasi. Cek koneksi internet atau server.");
+                    },
+                    complete: function() {
+                        // 3. Berhentikan putaran icon
+                        icon.removeClass('fa-spin');
+                        // 4. Aktifkan kembali tombol
+                        btn.prop('disabled', false).removeClass('opacity-50');
+                    }
+                });
+            });        
+           
+            // Navigasi Menu
+            $('.nav-btn').click(function() {
+                const target = $(this).data('target');
+                
+                // Switch Halaman
+                $('.page-content').removeClass('page-active');
+                $('#' + target).addClass('page-active');
+
+                // Switch Style Button Menu
+                $('.nav-btn').removeClass('nav-active text-blue-600').addClass('text-gray-400');
+                $(this).addClass('nav-active text-blue-600').removeClass('text-gray-400');
+            });
+
+            // Trigger Kamera
+            $('#btnAmbilFoto').click(function() { $('#foto_file').click(); });
+
+            // Preview & Kompresi
+            $('#foto_file').change(async function(e) {
+                const imageFile = e.target.files[0];
+                if (!imageFile) return;
+
+                $('#preview').attr('src', URL.createObjectURL(imageFile)).removeClass('hidden');
+                $('#txtFoto').addClass('hidden');
+
+                const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1280, useWebWorker: true }
+
+                try {
+                    $('#btnSimpan').prop('disabled', true).addClass('opacity-50').text('Mengompres...');
+                    fileTerkompresi = await imageCompression(imageFile, options);
+                    $('#btnSimpan').prop('disabled', false).removeClass('opacity-50').text('KIRIM DATA');
+                } catch (error) {
+                    alert('Gagal mengompres gambar.');
+                }
+            });
+
+            // Kirim Data AJAX
+            $('#btnSimpan').click(function() {
+                const lokasi = $('#lokasi').val();
+                const tekanan = $('#tekanan').val();
+
+                if(!lokasi || !tekanan || !fileTerkompresi) {
+                    alert('Mohon lengkapi Lokasi, Tekanan, dan Foto!');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('lokasi', lokasi);
+                formData.append('tekanan', tekanan);
+                formData.append('foto', fileTerkompresi, "manometer.jpg");
+
+                $('#btnSimpan').text('Mengirim...').prop('disabled', true);
+
+                $.ajax({
+                    url: 'upload.php',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(res) {
+                        let response = JSON.parse(res);
+                            if(response.status == 'success') {
+                            alert('Mantap! Data terkirim.');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Gagal mengirim. Periksa koneksi atau server.');
+                        $('#btnSimpan').text('KIRIM DATA').prop('disabled', false);
+                    }
+                });
+            });
+
+async function saveToIndexedDB(data) {
+    try {
+        const db = await initDB(); // Menggunakan fungsi initDB kamu yang mengembalikan Promise
+        const transaction = db.transaction(["daftar_baca"], "readwrite");
+        const store = transaction.objectStore("daftar_baca");
+
+        // 1. Bersihkan data lama (opsional, agar data lokal sama persis dengan server)
+        const clearRequest = store.clear();
+
+        clearRequest.onsuccess = () => {
+            // 2. Masukkan data baru satu per satu
+            data.forEach(item => {
+                store.add(item);
+            });
+            console.log("Data berhasil disinkronkan ke IndexedDB local.");
+            loadDataFromDB();
+        };
+
+        transaction.onerror = (event) => {
+            console.error("Gagal menyimpan ke IndexedDB:", event.target.error);
+        };
+
+    } catch (error) {
+        console.error("Kesalahan inisialisasi database:", error);
+    }
+}
+
+async function loadDataFromDB() {
+    const db = await initDB(); // Menggunakan fungsi initDB kamu yang mengembalikan Promise
+    const transaction = db.transaction(["daftar_baca"], "readonly");
+    const store = transaction.objectStore("daftar_baca");
+    const request = store.getAll(); // Ambil semua sekaligus
+
+    request.onsuccess = (event) => {
+        allDataMano = event.target.result;
+        genrateDaftarBaca(allDataMano); // Tampilkan semua di awal
+        updateDatalist(allDataMano);
+    };
+}
+
+function genrateDaftarBaca(allDataMano) {
+  const container = document.getElementById('listBaca');
+  // Kosongkan container sebelum diisi data baru (agar tidak dobel saat refresh)
+  container.innerHTML = "";
+
+  if (allDataMano.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-10 italic text-sm">Data tidak ditemukan.</p>`;
+        return;
+    }
+    container.innerHTML = allDataMano.map(data => `
+         <div class="bg-gray-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-all border-l-4 border-green-500 text-left mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg leading-tight">${data.manometer}</h3>
+                    <p class="text-xs font-semibold text-green-600 uppercase mt-1">Zona ${data.id_zona} • DMA ${data.id_dma}</p>
+                    </div>
+                <span class="bg-gray-200 text-gray-600 text-[10px] px-2 py-1 rounded-md font-mono">ID:${data.id_manometer}</span>
+            </div>
+
+            <div class="mt-3 flex items-center justify-between">
+                <div class="flex items-center text-gray-400">
+                    <i class="fas fa-map-marker-alt text-[10px] mr-1"></i>
+                    <span class="text-[11px]">${data.latitude || '0'}, ${data.longitude || '0'}</span>
+            </div>
+      
+            <button onclick="inputTekanan('${data.id_manometer}')" 
+                class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-sm active:scale-95 transition-transform flex items-center">
+                    <i class="fas fa-edit mr-2 text-xs"></i> Input
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+}
+
+function inputTekanan(id_manometer){
+alert(id_manometer);
+}
+
+// 3. Event Listener untuk Pencarian (Real-time)
+document.getElementById('searchMano').addEventListener('input', (e) => {
+    const keyword = e.target.value.toLowerCase();
+    
+    const filtered = allDataMano.filter(item => 
+        item.manometer.toLowerCase().includes(keyword) || 
+        item.id_manometer.toString().includes(keyword)
+    );
+
+    genrateDaftarBaca(filtered);
+});
+
+
+    });
+    </script>
+</body>
+</html>

@@ -2,169 +2,219 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDAM Gianyar - Monitor Manometer</title>
-    <link rel="manifest" href="manifest.json">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
-    <style>
-        body { background-color: #f0f4f8; font-family: sans-serif; padding-bottom: 80px; }
-        .app-card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .nav-active { color: #1d4ed8; border-top: 3px solid #1d4ed8; }
-        .page-content { display: none; }
-        .page-active { display: block; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SINOMAN - LOGIN</title>
+    <link rel="stylesheet" href="https://manoapp.trisakti.dev/assets/css/login_style.css">
+    <!-- <link rel="stylesheet" href="assets/css/login_style.css"> -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
-<body class="p-4">
+<body>
 
-    <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-blue-700">PDAM GIANYAR</h1>
-        <p class="text-sm text-gray-500">Monitoring Tekanan Air</p>
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <p>Sedang memproses...</p>
     </div>
 
-    <div id="page-input" class="page-content page-active">
-        <div class="bg-white p-6 app-card mb-6">
-            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">Input Manometer</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-gray-600">Lokasi Manometer</label>
-                    <input type="text" id="lokasi" class="w-full p-3 border rounded-lg focus:outline-blue-500 shadow-sm" placeholder="Contoh: Zona Ubud">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-600">Tekanan (Bar)</label>
-                    <input type="number" step="0.1" id="tekanan" class="w-full p-3 border rounded-lg focus:outline-blue-500 shadow-sm" placeholder="0.0">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-600">Foto Manometer</label>
-                    <input type="file" id="foto_file" accept="image/*" capture="camera" class="hidden">
-                    <div id="btnAmbilFoto" class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer bg-gray-50 active:bg-gray-200 transition">
-                        <span id="txtFoto" class="text-gray-500">📸 Klik untuk Ambil Foto</span>
-                        <img id="preview" class="hidden mt-2 mx-auto rounded-lg max-h-48 shadow-md">
-                    </div>
-                </div>
-                <button id="btnSimpan" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition flex justify-center items-center shadow-lg">
-                    <span>KIRIM DATA</span>
-                </button>
+    <div class="login-container">
+        <div class="logo-area">
+            <h1>LOGIN</h1>
+            <p>MANOMETER READING</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Masukkan username" required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Masukkan password" required>
+            </div>
+            <button type="submit" class="btn-login">MASUK</button>
+        </form>
+        <button type="submit" class="btn-setting" onclick="openModal('Setting IP Server')">SET API</button>
+
+        <p class="footer-text">&copy; 2026 Crocodev</p>
+    </div>
+
+    <div id="modalApp" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h3 id="modalTitle">Konfirmasi</h3>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+            <input type="text" id="ip_server" class="input-minimalis" placeholder="Contoh: 192.168.1.10">
+            <span class="hidden" id="ip_empty"><small class="text-danger">IP/Host Name harus di isi !</small></span>
+            </div>
+            <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Batal</button>
+            <button class="btn-primary" id="btnConfirm"  onclick="saveURL()">Simpan</button>
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+ <script>
+   const dbName = "manoApp";
 
-    <div id="page-history" class="page-content">
-        <div class="bg-white p-6 app-card">
-            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">Riwayat Terakhir</h2>
-            <div id="listData" class="space-y-4">
-                <p class="text-center text-gray-400 py-10 italic">Data di server akan muncul di sini.</p>
-            </div>
-        </div>
-    </div>
+// Fungsi untuk inisialisasi IndexedDB
+function initDB() {
+    return new Promise((resolve, reject) => {
+        // Versi dinaikkan ke 2 jika sebelumnya sudah ada versi 1 untuk memicu onupgradeneeded
+        const request = indexedDB.open("manoApp", 1);
 
-    <div id="page-info" class="page-content text-center">
-        <div class="bg-white p-8 app-card">
-            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="text-3xl font-bold">G</span>
-            </div>
-            <h2 class="text-xl font-bold text-gray-800">Petugas Lapangan</h2>
-            <p class="text-gray-500 text-sm">PDAM Tirta Sanjiwani Gianyar</p>
-            <hr class="my-6">
-            <p class="text-xs text-gray-400 uppercase tracking-widest">Brand Partner</p>
-            <p class="font-bold text-orange-600">Godoh Embon</p>
-        </div>
-    </div>
-
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        <button class="nav-btn w-full py-3 flex flex-col items-center nav-active" data-target="page-input">
-            <span class="text-xl">📝</span>
-            <span class="text-[10px] font-bold uppercase">Input</span>
-        </button>
-        <button class="nav-btn w-full py-3 flex flex-col items-center text-gray-400" data-target="page-history">
-            <span class="text-xl">📊</span>
-            <span class="text-[10px] font-bold uppercase">Riwayat</span>
-        </button>
-        <button class="nav-btn w-full py-3 flex flex-col items-center text-gray-400" data-target="page-info">
-            <span class="text-xl">ℹ️</span>
-            <span class="text-[10px] font-bold uppercase">Info</span>
-        </button>
-    </nav>
-
-    <script>
-        $(document).ready(function() {
-            let fileTerkompresi = null;
-
-            // Navigasi Menu
-            $('.nav-btn').click(function() {
-                const target = $(this).data('target');
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            
+            // Nama Object Store disesuaikan dengan konteks Manometer
+            if (!db.objectStoreNames.contains("pembacaan_manometer")) {
                 
-                // Switch Halaman
-                $('.page-content').removeClass('page-active');
-                $('#' + target).addClass('page-active');
-
-                // Switch Style Button Menu
-                $('.nav-btn').removeClass('nav-active text-blue-600').addClass('text-gray-400');
-                $(this).addClass('nav-active text-blue-600').removeClass('text-gray-400');
-            });
-
-            // Trigger Kamera
-            $('#btnAmbilFoto').click(function() { $('#foto_file').click(); });
-
-            // Preview & Kompresi
-            $('#foto_file').change(async function(e) {
-                const imageFile = e.target.files[0];
-                if (!imageFile) return;
-
-                $('#preview').attr('src', URL.createObjectURL(imageFile)).removeClass('hidden');
-                $('#txtFoto').addClass('hidden');
-
-                const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1280, useWebWorker: true }
-
-                try {
-                    $('#btnSimpan').prop('disabled', true).addClass('opacity-50').text('Mengompres...');
-                    fileTerkompresi = await imageCompression(imageFile, options);
-                    $('#btnSimpan').prop('disabled', false).removeClass('opacity-50').text('KIRIM DATA');
-                } catch (error) {
-                    alert('Gagal mengompres gambar.');
-                }
-            });
-
-            // Kirim Data AJAX
-            $('#btnSimpan').click(function() {
-                const lokasi = $('#lokasi').val();
-                const tekanan = $('#tekanan').val();
-
-                if(!lokasi || !tekanan || !fileTerkompresi) {
-                    alert('Mohon lengkapi Lokasi, Tekanan, dan Foto!');
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('lokasi', lokasi);
-                formData.append('tekanan', tekanan);
-                formData.append('foto', fileTerkompresi, "manometer.jpg");
-
-                $('#btnSimpan').text('Mengirim...').prop('disabled', true);
-
-                $.ajax({
-                    url: 'upload.php',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function(res) {
-                        let response = JSON.parse(res);
-                            if(response.status == 'success') {
-                            alert('Mantap! Data terkirim.');
-                            location.reload();
-                        } else {
-                            alert('Error: ' + response.message);
-                        }
-                    },
-                    error: function() {
-                        alert('Gagal mengirim. Periksa koneksi atau server.');
-                        $('#btnSimpan').text('KIRIM DATA').prop('disabled', false);
-                    }
+                // Primary key menggunakan 'id_periode' sesuai gambar
+                const store = db.createObjectStore("pembacaan_manometer", { 
+                    keyPath: "id_pembacaan", 
+                    autoIncrement: true 
                 });
-            });
+
+                // Index untuk mempermudah pencarian berdasarkan kolom penting di gambar
+                store.createIndex("id_manometer", "id_manometer", { unique: false });
+                store.createIndex("tgl_baca", "tgl_baca", { unique: false });
+                store.createIndex("pressure", "pressure", { unique: false });
+                store.createIndex("nik", "nik", { unique: false });
+                store.createIndex("operator", "operator", { unique: false });
+                store.createIndex("kondisi_baca", "kondisi_baca", { unique: false });
+                store.createIndex("status_baca", "status_baca", { unique: false });
+                store.createIndex("status_masa", "status_masa", { unique: false });
+                store.createIndex("code_trx", "code_trx", { unique: false });
+                // Tetap menyertakan index status_sync untuk keperluan sinkronisasi data offline ke server
+                // 0 = belum upload, 1 = sudah upload
+                store.createIndex("status_sync", "status_sync", { unique: false });
+            }
+
+             // Nama Object Store disesuaikan dengan konteks Manometer
+            if (!db.objectStoreNames.contains("daftar_baca")) {
+                
+                // Primary key menggunakan 'id_periode' sesuai gambar
+                const store = db.createObjectStore("daftar_baca", { 
+                    keyPath: "id", 
+                    autoIncrement: true 
+                });
+
+                // Index untuk mempermudah pencarian berdasarkan kolom penting di gambar
+                store.createIndex("id_manometer", "id_manometer", { unique: true });
+                store.createIndex("id_zona", "id_zona", { unique: false });
+                store.createIndex("nama_zona", "nama_zona", { unique: false });
+                store.createIndex("id_dma", "id_dma", { unique: false });
+                store.createIndex("nama_dma", "nama_dma", { unique: false });
+                store.createIndex("kode_manometer", "kode_manometer", { unique: false });
+                store.createIndex("manometer", "manometer", { unique: false });
+                store.createIndex("diameter", "diameter", { unique: false });
+                store.createIndex("longitude", "longitude", { unique: false });
+                store.createIndex("latitude", "latitude", { unique: false });
+                
+            }
+        };
+
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject("Gagal membuka IndexedDB: " + event.target.error);
+    });
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const ip_server = localStorage.getItem('ip_server');
+
+    if(!ip_server){
+        alert("IP Server Belum di setting");
+    } else {
+        $.ajax({
+            url: ip_server + "/Services/auth",
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                user: user,
+                pass: pass
+            },
+            beforeSend: function() {
+                // TAMPILKAN LOADER
+                $('#loader').removeClass('hidden');
+            },
+            success: function(data) {
+                if(data.status === true){
+                    initDB().then(() => {
+                        console.log("Database berhasil disiapkan");
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('username', data.result["username"]);
+                        localStorage.setItem('role_id', data.result["role_id"]);
+                        localStorage.setItem('nik', data.result["nik"]);
+                        window.location.href = 'main.html';
+                    }).catch((err) => {
+                        alert("Gagal menyiapkan database lokal: " + err);
+                    });
+                } else {
+                    alert(data.message);
+                }
+            },
+            error: function() {
+                alert("Gagal terhubung ke server. Cek kembali koneksi atau IP Server.");
+            },
+            complete: function() {
+                // SEMBUNYIKAN LOADER SETELAH SELESAI
+                $('#loader').addClass('hidden');
+            }
+        });
+    }
+});
+
+        function saveURL() {
+            document.getElementById('ip_empty').classList.add('hidden');
+            const ip_server = document.getElementById('ip_server').value;
+                if(ip_server==""){
+                    document.getElementById('ip_empty').classList.remove('hidden');
+                }else{
+                    document.getElementById('ip_empty').classList.add('hidden');
+                    localStorage.setItem('ip_server', ip_server);
+                    closeModal();
+                }
+        }
+
+        // FUNGSI JAVASCRIPT UNTUK MODAL
+        function openModal(title) {
+            document.getElementById('modalTitle').innerText = title;
+            $("#ip_server").val(localStorage.getItem("ip_server"));
+            document.getElementById('modalApp').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalApp').classList.remove('show');
+        }
+
+    // Klik di luar modal untuk menutup
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalApp');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+    $(document).ready(function() {
+        // Mengambil string query dari URL (misal: ?login=error)
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Mengambil nilai dari parameter 'login'
+        const statusLogin = urlParams.get('login');
+
+        console.log(statusLogin); // Output: error
+
+        // Contoh penggunaan dengan jQuery untuk menampilkan pesan
+        if (statusLogin) {
+            statusLogin === 'error'?alert('Silahkan login terlebih dahulu !'):""
+        }
         });
     </script>
-</body>
 </html>
