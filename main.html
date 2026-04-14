@@ -205,7 +205,7 @@ function initDB() {
 }
             var login_status = localStorage.getItem('isLoggedIn');
             !login_status?window.location.replace("./index.html?login=error"):"";
-            let fileTerkompresi = null;
+            
 
             $('#btnSynch').on('click', function() {
                 const ip_server = localStorage.getItem('ip_server');
@@ -296,11 +296,17 @@ function initDB() {
                 $('#preview').attr('src', URL.createObjectURL(imageFile)).removeClass('hidden');
                 $('#txtFoto').addClass('hidden');
 
-                const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1280, useWebWorker: true }
+                const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1280, useWebWorker: true };
 
                 try {
                     $('#btnSimpan').prop('disabled', true).addClass('opacity-50').text('Mengompres...');
-                    fileTerkompresi = await imageCompression(imageFile, options);
+        
+                    // Kompres file
+                    const fileTerkompresi = await imageCompression(imageFile, options);
+        
+                    // SIMPAN KE ELEMEN DOM BUKAN VARIABEL GLOBAL
+                    $(this).data('fileTerkompresi', fileTerkompresi);
+        
                     $('#btnSimpan').prop('disabled', false).removeClass('opacity-50').text('KIRIM DATA');
                 } catch (error) {
                     alert('Gagal mengompres gambar.');
@@ -347,7 +353,8 @@ function initDB() {
                 formData.append('kondisi_baca', kondisi_baca);
                 formData.append('nik', nik);
                 formData.append('username', username);
-
+                
+                const fileTerkompresi = $('#foto_file').data('fileTerkompresi');
                 // --- PERBAIKAN DI SINI ---
                 // Cek apakah variabel fileTerkompresi ada isinya atau tidak
                 if (typeof fileTerkompresi !== 'undefined' && fileTerkompresi) {
