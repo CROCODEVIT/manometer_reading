@@ -205,7 +205,7 @@ function initDB() {
 }
             var login_status = localStorage.getItem('isLoggedIn');
             !login_status?window.location.replace("./index.html?login=error"):"";
-            
+
 
             $('#btnSynch').on('click', function() {
                 const ip_server = localStorage.getItem('ip_server');
@@ -289,7 +289,7 @@ function initDB() {
             $('#btnAmbilFoto').click(function() { $('#foto_file').click(); });
 
             // Preview & Kompresi
-            $('#foto_file').change(async function(e) {
+           $('#foto_file').change(async function(e) {
                 const imageFile = e.target.files[0];
                 if (!imageFile) return;
 
@@ -301,14 +301,17 @@ function initDB() {
                 try {
                     $('#btnSimpan').prop('disabled', true).addClass('opacity-50').text('Mengompres...');
         
-                    // Kompres file
                     const fileTerkompresi = await imageCompression(imageFile, options);
         
-                    // SIMPAN KE ELEMEN DOM BUKAN VARIABEL GLOBAL
-                    $(this).data('fileTerkompresi', fileTerkompresi);
+                    // DEBUG: Cek apakah hasil kompresi ada
+                    console.log("Hasil kompresi:", fileTerkompresi);
+
+                    // Simpan langsung ke properti elemen (Bukan jQuery data)
+                    this.fileData = fileTerkompresi; 
         
                     $('#btnSimpan').prop('disabled', false).removeClass('opacity-50').text('KIRIM DATA');
                 } catch (error) {
+                    console.error("Error kompresi:", error);
                     alert('Gagal mengompres gambar.');
                 }
             });
@@ -353,8 +356,10 @@ function initDB() {
                 formData.append('kondisi_baca', kondisi_baca);
                 formData.append('nik', nik);
                 formData.append('username', username);
-                
-                const fileTerkompresi = $('#foto_file').data('fileTerkompresi');
+
+                const fileInput = document.getElementById('foto_file');
+                const fileTerkompresi = fileInput.fileData;
+                console.log("File yang akan dikirim:", fileTerkompresi);
                 // --- PERBAIKAN DI SINI ---
                 // Cek apakah variabel fileTerkompresi ada isinya atau tidak
                 if (typeof fileTerkompresi !== 'undefined' && fileTerkompresi) {
